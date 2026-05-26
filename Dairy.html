@@ -29,7 +29,7 @@
 <body>
 
 <div id="login-container" class="container" style="margin-top:50px; text-align:center; padding: 30px 15px;">
-  <h2 style="font-size:24px;">🔒 MUNEEB CHANDRA YADAV</h2>
+  <h2>🔒 MUNEEB CHANDRA YADAV</h2>
   <p style="color:#555; font-size:13px; margin-bottom:15px;">अपना डेटा सुरक्षित रखने के लिए लॉगिन करें।</p>
   <div id="normalLoginBox">
     <label style="text-align:left;">मोबाइल नंबर:</label>
@@ -136,8 +136,11 @@
     <button class="btn-danger" onclick="logoutApp()" style="padding:15px; font-size:16px;">लॉगआउट करें</button>
   </div>
 </div>
+
 <script>
   const DB_URL = "https://suraj-yadav-b752d-default-rtdb.firebaseio.com";
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbyQUp1KD9SIkajrCynBur49fb1E410W3eRT0QzjbMxAMvqPCS9ampEvPnO2w3tNsCGV/exec";
+  
   let userPhone = "", userPin = "";
   try { userPhone = localStorage.getItem("dairyCloudPhone") || ""; userPin = localStorage.getItem("dairyCloudPin") || ""; } catch(e) {}
   let customers = {}, entries = [], payments = [], settings = { cow: 50, buffalo: 60, mix: 55, upi: "" };
@@ -268,7 +271,7 @@
     let name = document.getElementById("newName").value.trim(); 
     let phone = document.getElementById("newPhone").value.trim(); 
     let fLiter = parseFloat(document.getElementById("fixedLiter").value) || 0; 
-    if(!code || !name) return alert("코드 और नाम ज़रूरी है!"); 
+    if(!code || !name) return alert("कोड और नाम ज़रूरी है!"); 
     customers[code] = { name: name, phone: phone, fixed: fLiter }; 
     syncToCloud(); 
     alert("ग्राहक जुड़ गया!"); 
@@ -304,8 +307,6 @@
   
   function calcTotal() { let l = document.getElementById("liter").value; let r = document.getElementById("rate").value; document.getElementById("totalDisplay").innerText = "₹" + (l * r || 0).toFixed(2); }
 
-  const SHEET_URL = "https://script.google.com/macros/s/AKfycbyQUp1KD9SIkajrCynBur49fb1E410W3eRT0QzjbMxAMvqPCS9ampEvPnO2w3tNsCGV/exec";
-
   function saveEntry() { 
     let code = document.getElementById("custCode").value; 
     if(!customers[code] || !customers[code].name) return alert("सही ग्राहक कोड डालें!"); 
@@ -313,17 +314,24 @@
     let r = parseFloat(document.getElementById("rate").value); 
     if(!l || !r) return alert("लीटर और रेट भरें!"); 
     
-    entries.push({ id: Date.now(), date: document.getElementById("entryDate").value, shift: document.getElementById("shift").value, code: code, type: document.getElementById("milkType").value, liter: l, rate: r, total: l*r }); 
+    let entryId = Date.now();
+    let entryDate = document.getElementById("entryDate").value;
+    let entryTotal = l * r;
+
+    entries.push({ id: entryId, date: entryDate, shift: document.getElementById("shift").value, code: code, type: document.getElementById("milkType").value, liter: l, rate: r, total: entryTotal }); 
     syncToCloud(); 
 
     if(SHEET_URL.includes("http")) {
       let formData = new URLSearchParams();
-      formData.append("Date", document.getElementById("entryDate").value);
-      formData.append("Mobile", customers[code].phone || "-");
+      formData.append("action", "create");
+      formData.append("id", entryId);
+      formData.append("Type", "entry");
+      formData.append("Date", entryDate);
       formData.append("Name", customers[code].name);
+      formData.append("Mobile", customers[code].phone || "-");
       formData.append("Milk", l);
       formData.append("Rate", r);
-      formData.append("Total", l*r);
+      formData.append("Total", entryTotal);
       fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
     }
 
@@ -345,7 +353,24 @@
         let already = entries.find(e => e.date == tDate && e.code == code && e.shift == 'Morning'); 
         if(!already) { 
           let r = settings.buffalo; 
-          entries.push({ id: Date.now()+count, date: tDate, shift: 'Morning', code: code, type: 'Buffalo', liter: customers[code].fixed, rate: r, total: customers[code].fixed * r }); 
+          let entryId = Date.now() + count;
+          let totalAmt = customers[code].fixed * r;
+
+          entries.push({ id: entryId, date: tDate, shift: 'Morning', code: code, type: 'Buffalo', liter: customers[code].fixed, rate: r, total: totalAmt }); 
+          
+          if(SHEET_URL.includes("http")) {
+            let formData = new URLSearchParams();
+            formData.append("action", "create");
+            formData.append("id", entryId);
+            formData.append("Type", "entry");
+            formData.append("Date", tDate);
+            formData.append("Name", customers[code].name);
+            formData.append("Mobile", customers[code].phone || "-");
+            formData.append("Milk", customers[code].fixed);
+            formData.append("Rate", r);
+            formData.append("Total", totalAmt);
+            fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
+          }
           count++; 
         } 
       } 
@@ -376,31 +401,34 @@
 
   function deletePassbookItem(id, type) {
     if(!confirm("क्या आप इस एंट्री को हमेशा के लिए डिलीट करना चाहते हैं?")) return;
+    
     if(type === 'entry') {
       entries = entries.filter(e => e.id != id);
     } else {
       payments = payments.filter(p => p.id != id);
     }
     syncToCloud();
-    alert("✔️ एंट्री सफलतापूर्वक डिलीट हो गई!");
+
+    if(SHEET_URL.includes("http")) {
+      let formData = new URLSearchParams();
+      formData.append("action", "delete");
+      formData.append("id", id);
+      fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
+    }
+
+    alert("✔️ एंट्री सफलतापूर्वक डिलीट हो गई (ऐप और शीट दोनों में)!");
     generatePassbook(); 
     loadDashboard(); 
   }
 
-  // ADVANCED 3-OPTION EDIT SYSTEM (QUANTITY, DATE, RATE)
   function editPassbookItem(id, type) {
     if(type === 'entry') {
       let entry = entries.find(e => e.id == id);
       if(entry) {
-        // 1. Dudh ki matra poochhein
         let newLiter = prompt("1. सही दूध (लीटर) दर्ज करें:", entry.liter);
-        if(newLiter === null) return; // cancel daba diya toh ruk jao
-
-        // 2. Date poochhein
+        if(newLiter === null) return;
         let newDate = prompt("2. सही तारीख (YYYY-MM-DD) दर्ज करें:", entry.date);
         if(newDate === null) return;
-
-        // 3. Rate poochhein
         let newRate = prompt("3. सही रेट (₹/लीटर) दर्ज करें:", entry.rate);
         if(newRate === null) return;
 
@@ -411,22 +439,31 @@
           entry.liter = l;
           entry.date = newDate.trim();
           entry.rate = r;
-          entry.total = l * r; // naya total calculation
+          entry.total = l * r;
           syncToCloud();
-          alert("🎉 एंट्री सफलतापूर्वक सही (Edit) हो गई है!");
+
+          if(SHEET_URL.includes("http")) {
+            let formData = new URLSearchParams();
+            formData.append("action", "edit");
+            formData.append("id", id);
+            formData.append("Type", "entry");
+            formData.append("Date", entry.date);
+            formData.append("Milk", l);
+            formData.append("Rate", r);
+            formData.append("Total", entry.total);
+            fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
+          }
+
+          alert("🎉 एंट्री सफलतापूर्वक सही (Edit) हो गई (App और Sheet दोनों में)!");
           generatePassbook();
           loadDashboard();
-        } else {
-          alert("❌ गलत जानकारी! कृपया नंबर और तारीख सही से भरें।");
-        }
+        } else { alert("❌ गलत जानकारी!"); }
       }
     } else {
-      // Payment edit system (Isme sirf amount aur date badlega)
       let payment = payments.find(p => p.id == id);
       if(payment) {
         let newAmt = prompt("1. सही जमा अमाउंट (रुपये) दर्ज करें:", payment.amount);
         if(newAmt === null) return;
-
         let newDate = prompt("2. सही तारीख (YYYY-MM-DD) दर्ज करें:", payment.date);
         if(newDate === null) return;
 
@@ -435,7 +472,20 @@
           payment.amount = a;
           payment.date = newDate.trim();
           syncToCloud();
-          alert("🎉 जमा एंट्री सही हो गई!");
+
+          if(SHEET_URL.includes("http")) {
+            let formData = new URLSearchParams();
+            formData.append("action", "edit");
+            formData.append("id", id);
+            formData.append("Type", "payment");
+            formData.append("Date", payment.date);
+            formData.append("Milk", "0");
+            formData.append("Rate", "0");
+            formData.append("Total", a);
+            fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
+          }
+
+          alert("🎉 जमा एंट्री सही हो गई (App और Sheet दोनों में)!");
           generatePassbook();
           loadDashboard();
         } else { alert("❌ गलत नंबर या तारीख!"); }
@@ -470,7 +520,36 @@
     currentBill = { isMaster: true, text: `मास्टर डेयरी रिपोर्ट (${start} से ${end})\nकुल दूध बिका: ${gLiters.toFixed(1)}L\nकुल बिल: ₹${gBill.toFixed(0)}\nकुल जमा आया: ₹${gPaid.toFixed(0)}\nकुल बाज़ार में बाकी: ₹${gPending.toFixed(0)}` }; 
   }
   
-  function addPayment() { let code = document.getElementById("pbCode").value; let amt = parseFloat(document.getElementById("paymentAmount").value); let d = document.getElementById("payDate").value; if(!amt || !code) return alert("अमाउंट डालें!"); payments.push({ id: Date.now(), date: d, code: code, amount: amt }); syncToCloud(); alert("✔️ जमा हो गए!"); document.getElementById("paymentAmount").value = ""; generatePassbook(); loadDashboard(); }
+  function addPayment() { 
+    let code = document.getElementById("pbCode").value; 
+    let amt = parseFloat(document.getElementById("paymentAmount").value); 
+    let d = document.getElementById("payDate").value; 
+    if(!amt || !code) return alert("अमाउंट डालें!"); 
+    
+    let payId = Date.now();
+    payments.push({ id: payId, date: d, code: code, amount: amt }); 
+    syncToCloud(); 
+
+    if(SHEET_URL.includes("http")) {
+      let formData = new URLSearchParams();
+      formData.append("action", "create");
+      formData.append("id", payId);
+      formData.append("Type", "payment");
+      formData.append("Date", d);
+      formData.append("Name", customers[code].name);
+      formData.append("Mobile", customers[code].phone || "-");
+      formData.append("Milk", "0");
+      formData.append("Rate", "0");
+      formData.append("Total", amt);
+      fetch(SHEET_URL, { method: 'POST', body: formData }).catch(e=>console.log(e));
+    }
+
+    alert("✔️ जमा हो गए (ऐप और शीट दोनों में)!"); 
+    document.getElementById("paymentAmount").value = ""; 
+    generatePassbook(); 
+    loadDashboard(); 
+  }
+
   function shareReport() { if (navigator.share) { navigator.share({ title: 'डेयरी रिपोर्ट', text: currentBill.text }).catch(console.error); } else { window.print(); } }
   function sendWhatsApp() { if(currentBill.isMaster) { let url = `https://wa.me/?text=${encodeURIComponent(currentBill.text)}`; window.open(url, '_blank'); } else { if(!currentBill.phone) return alert("नंबर सेव नहीं है!"); let upiMsg = ""; if (settings.upi && currentBill.pending > 0) { upiMsg = `\n\n💸 *ऑनलाइन पेमेंट करें:*\nआप अपना बकाया (₹${currentBill.pending}) इस नंबर/UPI पर भेज सकते हैं: *${settings.upi}*`; } let msg = `राधे राधे ${currentBill.name} जी,\n\nयह आपका 'MUNEEB CHANDRA YADAV' डेयरी का हिसाब है:\n${currentBill.text}${upiMsg}\n\nधन्यवाद (MUNEEB CHANDRA YADAV)!`; let url = `https://wa.me/91${currentBill.phone}?text=${encodeURIComponent(msg)}`; window.open(url, '_blank'); } }
 
