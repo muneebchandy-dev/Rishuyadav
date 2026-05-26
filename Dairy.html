@@ -6,29 +6,32 @@
 <title>MUNEEB CHANDRA YADAV - Dairy App</title>
 <style>
   body{font-family:Arial,sans-serif;background:#eef2f3;margin:0;padding:10px;}
-  .container{max-width:600px;margin:auto;background:white;padding:10px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.1);}
-  h2{text-align:center;color:#1565c0;margin-top:5px;font-size:20px;}
-  .tabs{display:flex;overflow-x:auto;margin-bottom:10px;background:#e0e0e0;border-radius:5px;white-space:nowrap;}
-  .tab-btn{flex:1;padding:12px 10px;border:none;background:none;font-size:13px;font-weight:bold;cursor:pointer;color:#333;}
+  /* यहाँ बदलाव किया है: लैपटॉप पर फुल स्क्रीन और मोबाइल पर ऑटो-फिट */
+  .container{max-width:100%;margin:auto;background:white;padding:15px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+  @media(min-width: 768px) { .container { padding: 25px; } }
+  h2{text-align:center;color:#1565c0;margin-top:5px;font-size:22px;}
+  .tabs{display:flex;overflow-x:auto;margin-bottom:15px;background:#e0e0e0;border-radius:5px;white-space:nowrap;}
+  .tab-btn{flex:1;padding:14px 10px;border:none;background:none;font-size:14px;font-weight:bold;cursor:pointer;color:#333;text-align:center;}
   .tab-btn.active{background:#1565c0;color:white;border-radius:5px;}
   .tab-content{display:none;} .tab-content.active{display:block;}
-  label{font-weight:bold;margin-top:8px;display:block;font-size:13px;color:#444;}
-  input,select{width:100%;padding:10px;margin-top:4px;margin-bottom:8px;border:1px solid #bbb;border-radius:5px;font-size:14px;box-sizing:border-box;}
+  label{font-weight:bold;margin-top:10px;display:block;font-size:14px;color:#444;}
+  input,select{width:100%;padding:12px;margin-top:5px;margin-bottom:10px;border:1px solid #bbb;border-radius:5px;font-size:15px;box-sizing:border-box;}
   input[readonly]{background:#f5f5f5;color:#666;}
-  button{width:100%;padding:12px;border:none;background:#1565c0;color:white;font-size:14px;border-radius:5px;cursor:pointer;margin-bottom:10px;font-weight:bold;}
+  button{width:100%;padding:14px;border:none;background:#1565c0;color:white;font-size:15px;border-radius:5px;cursor:pointer;margin-bottom:12px;font-weight:bold;}
   .btn-green{background:#2e7d32;} .btn-danger{background:#d32f2f;padding:6px;font-size:12px;} .btn-warn{background:#f57c00;} .btn-wa{background:#25D366;color:white;} .btn-ai{background:#9c27b0;color:white;}
-  .report-box{margin-top:10px;overflow-x:auto;background:#fff;padding:5px;border-radius:5px;border:1px solid #ddd;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;} th,td{border:1px solid #ddd;padding:6px;text-align:center;} th{background-color:#1565c0;color:white;} tr:nth-child(even){background-color:#f9f9f9;}
-  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;}
-  .dash-card{background:#fff3e0;padding:15px;border-radius:8px;border:1px solid #ffb74d;text-align:center;} .dash-card h3{margin:0;color:#e65100;font-size:22px;} .dash-card p{margin:5px 0 0;font-size:13px;font-weight:bold;color:#555;}
-  .ai-box{background:#e8eaf6;padding:15px;border-radius:8px;border:1px solid #c5cae9;margin-bottom:15px;}
-  .flex-row{display:flex;gap:10px;} .flex-row > div, .flex-row > button{flex:1;font-size:13px;}
-  #cloudSyncStatus{font-size:11px;font-weight:bold;color:#2e7d32;display:block;text-align:center;margin-top:-5px;margin-bottom:10px;}
+  .report-box{margin-top:12px;overflow-x:auto;background:#fff;padding:8px;border-radius:5px;border:1px solid #ddd;}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;} th,td{border:1px solid #ddd;padding:8px;text-align:center;} th{background-color:#1565c0;color:white;} tr:nth-child(even){background-color:#f9f9f9;}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  @media(min-width: 768px) { .dash-grid { grid-template-columns: 1fr 1fr 1fr 1fr; } } /* लैपटॉप पर चारों कार्ड एक लाइन में दिखेंगे */
+  .dash-card{background:#fff3e0;padding:18px;border-radius:8px;border:1px solid #ffb74d;text-align:center;} .dash-card h3{margin:0;color:#e65100;font-size:24px;} .dash-card p{margin:5px 0 0;font-size:14px;font-weight:bold;color:#555;}
+  .ai-box{background:#e8eaf6;padding:18px;border-radius:8px;border:1px solid #c5cae9;margin-bottom:18px;}
+  .flex-row{display:flex;gap:12px;} .flex-row > div, .flex-row > button{flex:1;font-size:14px;}
+  #cloudSyncStatus{font-size:12px;font-weight:bold;color:#2e7d32;display:block;text-align:center;margin-top:-5px;margin-bottom:12px;}
 </style>
 </head>
 <body>
 
-<div id="login-container" class="container" style="margin-top:50px; text-align:center; padding: 30px 15px;">
+<div id="login-container" class="container" style="max-width:500px; margin-top:50px; text-align:center; padding: 30px 15px;">
   <h2>🔒 MUNEEB CHANDRA YADAV</h2>
   <p style="color:#555; font-size:13px; margin-bottom:15px;">अपना डेटा सुरक्षित रखने के लिए लॉगिन करें।</p>
   <div id="normalLoginBox">
@@ -52,7 +55,7 @@
   </div>
 </div>
 
-<div id="app-container" class="container" style="display:none;">
+<div id="app-container" class="container">
   <h2>🥛 MUNEEB CHANDRA YADAV</h2>
   <span id="cloudSyncStatus">✅ क्लाउड से जुड़ा हुआ</span>
   <div class="tabs">
@@ -251,7 +254,7 @@
       if(nums && nums.length >= 2) {
         document.getElementById('custCode').value = nums[0]; autoFillCustomer();
         document.getElementById('liter').value = nums[1]; calcTotal();
-        alert(`🤖 AI ने सुना: ग्राहक कोड ${nums[0]}, और दूध ${nums[1]} लीटर।`);
+        alert(`🤖 AI ने सुना: ग्राहक कोड ${nums[0]}, और दूध ${nums[1]}延 लीटर।`);
       } else if(nums && nums.length == 1) {
         document.getElementById('custCode').value = nums[0]; autoFillCustomer();
         alert(`🤖 AI ने सिर्फ कोड ${nums[0]} सुना। लीटर खुद भरें।`);
@@ -271,7 +274,7 @@
     let name = document.getElementById("newName").value.trim(); 
     let phone = document.getElementById("newPhone").value.trim(); 
     let fLiter = parseFloat(document.getElementById("fixedLiter").value) || 0; 
-    if(!code || !name) return alert("कोड और नाम ज़रूरी है!"); 
+    if(!code || !name) return alert("코드 और नाम ज़रूरी है!"); 
     customers[code] = { name: name, phone: phone, fixed: fLiter }; 
     syncToCloud(); 
     alert("ग्राहक जुड़ गया!"); 
