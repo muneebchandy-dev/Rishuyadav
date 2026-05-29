@@ -17,7 +17,21 @@
   input,select{width:100%;padding:12px;margin-top:5px;margin-bottom:10px;border:1px solid #bbb;border-radius:5px;font-size:15px;box-sizing:border-box;}
   input[readonly]{background:#f5f5f5;color:#666;}
   button{width:100%;padding:14px;border:none;background:#1565c0;color:white;font-size:15px;border-radius:5px;cursor:pointer;margin-bottom:12px;font-weight:bold;}
-  .btn-green{background:#2e7d32;} .btn-danger{background:#d32f2f;padding:6px;font-size:12px;} .btn-warn{background:#f57c00;} .btn-wa{background:#25D366;color:white;} .btn-ai{background:#9c27b0;color:white;}
+  .btn-green{background:#2e7d32;} .btn-danger{background:#d32f2f;} .btn-warn{background:#f57c00;} .btn-wa{background:#25D366;color:white;} .btn-ai{background:#9c27b0;color:white;}
+  
+  /* लैपटॉप और मोबाइल दोनों के लिए छोटे स्मार्ट बटन का पक्का डिज़ाइन */
+  .action-btn {
+      width: 35px !important; 
+      height: 32px !important; 
+      padding: 0 !important; 
+      display: inline-flex !important; 
+      align-items: center !important; 
+      justify-content: center !important; 
+      margin: 2px !important; 
+      border-radius: 4px !important;
+      font-size: 14px !important;
+  }
+
   .report-box{margin-top:12px;overflow-x:auto;background:#fff;padding:8px;border-radius:5px;border:1px solid #ddd;}
   table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;} th,td{border:1px solid #ddd;padding:8px;text-align:center;} th{background-color:#1565c0;color:white;} tr:nth-child(even){background-color:#f9f9f9;}
   .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
@@ -26,9 +40,14 @@
   .ai-box{background:#e8eaf6;padding:18px;border-radius:8px;border:1px solid #c5cae9;margin-bottom:18px;}
   .flex-row{display:flex;gap:12px;} .flex-row > div, .flex-row > button{flex:1;font-size:13px;}
   #cloudSyncStatus{font-size:12px;font-weight:bold;color:#2e7d32;display:block;text-align:center;margin-top:-5px;margin-bottom:12px;}
-  
-  /* लैपटॉप के लिए बटनों को छोटा करने वाला फिक्स */
-  td button { width: auto !important; padding: 4px 12px !important; display: inline-block !important; margin: 2px !important; }
+
+  /* PDF प्रिंटिंग के लिए स्मार्ट CSS (फालतू चीजें छुपाने के लिए) */
+  @media print {
+    body * { visibility: hidden; }
+    #pdfContent, #pdfContent * { visibility: visible; }
+    #pdfContent { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 10px; }
+    .no-print, button, .tabs, #cloudSyncStatus { display: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -123,14 +142,24 @@
     <div id="pbArea" style="display:none;">
       
       <div id="pdfContent" style="padding: 10px; background: white;">
-        <h3 id="pbTitle" style="text-align:center; color:#1565c0; margin-bottom:5px;">ग्राहक पासबुक</h3>
-        <p id="pbSummary" style="font-size:13px; font-weight:bold; text-align:center; margin-top:0; color:#444; line-height: 1.5;"></p>
+        <div style="display: flex; align-items: center; border-bottom: 2px solid #1565c0; padding-bottom: 10px; margin-bottom: 10px;">
+          
+          <img src="https://i.ibb.co/DHVG73tL/Screenshot-2026-05-30-00-06-24-208-com-miui-gallery-edit.png" alt="Dairy Logo" id="dairyLogo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 50%;">
+          
+          <div style="flex: 1; text-align: center;">
+            <h3 id="pbTitle" style="color:#1565c0; margin: 0 0 5px 0; font-size: 20px; text-transform: uppercase; font-weight: bold;">MUNEEB CHANDRA YADAV DAIRY</h3>
+            <p id="pbSummary" style="font-size:13px; font-weight:bold; margin:0; color:#444; line-height: 1.5;"></p>
+          </div>
+          
+          <div style="width: 80px;"></div>
+        </div>
+        
         <div class="report-box" id="pbTableArea" style="border:none; padding:0;"></div>
       </div>
       
       <div class="flex-row" style="margin-top: 10px;" id="actionButtonsRow">
         <button class="btn-warn" onclick="shareReport()">📤 शेयर</button>
-        <button class="btn-warn" style="background:#0288d1;" onclick="downloadPDF()">📸 स्क्रीनशॉट मोड</button>
+        <button class="btn-warn" style="background:#0288d1;" onclick="downloadPDF()">📥 PDF/स्क्रीनशॉट</button>
         <button class="btn-wa" id="waBtn" onclick="sendWhatsApp()">💬 WhatsApp</button>
       </div>
 
@@ -313,8 +342,8 @@
                  <td>${customers[code].name}</td>
                  <td>${customers[code].phone || '-'}</td>
                  <td style="font-size:11px;">${fixStr}</td>
-                 <td><button class="btn-warn" style="padding:4px 6px; font-size:12px;" onclick="editCustomer('${code}')">✏️</button></td>
-                 <td><button class="btn-danger" style="padding:4px 6px; font-size:12px;" onclick="delCustomer('${code}')">X</button></td>
+                 <td><button class="btn-warn action-btn" onclick="editCustomer('${code}')">✏️</button></td>
+                 <td><button class="btn-danger action-btn" onclick="delCustomer('${code}')">X</button></td>
                </tr>`; 
     } 
     html += "</table>"; 
@@ -475,7 +504,20 @@
     myData.sort((a, b) => new Date(a.date) - new Date(b.date)); 
     
     let html = `<table><tr><th>तारीख</th><th>विवरण</th><th>बिल(₹)</th><th>जमा(₹)</th><th>बैलेंस</th><th class="no-print">एक्शन</th></tr>`; let balance = 0; 
-    myData.forEach(row => { balance += row.bill; balance -= row.paid; html += `<tr><td>${row.date}</td><td style="text-align:left; font-size:11px;">${row.desc}</td><td style="color:#d32f2f;">${row.bill>0 ? row.bill : '-'}</td><td style="color:#2e7d32;">${row.paid>0 ? row.paid : '-'}</td><td style="font-weight:bold;">${balance.toFixed(0)}</td><td style="white-space:nowrap;" class="no-print"><button class="btn-warn" style="padding:2px 6px; font-size:10px; margin-right:2px;" onclick="editPassbookItem('${row.id}', '${row.type}')">✏️</button><button class="btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deletePassbookItem('${row.id}', '${row.type}')">X</button></td></tr>`; }); 
+    myData.forEach(row => { 
+        balance += row.bill; balance -= row.paid; 
+        html += `<tr>
+                    <td>${row.date}</td>
+                    <td style="text-align:left; font-size:11px;">${row.desc}</td>
+                    <td style="color:#d32f2f;">${row.bill>0 ? row.bill : '-'}</td>
+                    <td style="color:#2e7d32;">${row.paid>0 ? row.paid : '-'}</td>
+                    <td style="font-weight:bold;">${balance.toFixed(0)}</td>
+                    <td style="white-space:nowrap;" class="no-print">
+                        <button class="btn-warn action-btn" onclick="editPassbookItem('${row.id}', '${row.type}')">✏️</button>
+                        <button class="btn-danger action-btn" onclick="deletePassbookItem('${row.id}', '${row.type}')">X</button>
+                    </td>
+                 </tr>`; 
+    }); 
     html += `</table>`; 
     
     document.getElementById("pbSummary").innerHTML = `<b>रिपोर्ट:</b> ${start} से ${end}<br><b>नाम:</b> ${customers[code].name} | <b>कुल दूध:</b> ${tLiter.toFixed(1)}L<br><b>कुल बिल:</b> ₹${tBill.toFixed(0)} | <b>जमा:</b> ₹${tPaid.toFixed(0)}<br><span style="color:red; font-size:16px;"><b>बकाया बैलेंस: ₹${balance.toFixed(0)}</b></span>`; 
@@ -555,15 +597,12 @@
     currentBill = { isMaster: true, text: `मास्टर डेयरी रिपोर्ट (${start} से ${end})\nकुल दूध बिका: ${gLiters.toFixed(1)}L\nकुल बिल: ₹${gBill.toFixed(0)}\nकुल जमा आया: ₹${gPaid.toFixed(0)}\nकुल बाज़ार में बाकी: ₹${gPending.toFixed(0)}` }; 
   }
   
-  // नया स्क्रीनशॉट मोड फंक्शन (मोबाइल के लिए 100% सेफ)
   function downloadPDF() {
-    // फालतू की चीजें छुपाना
     document.querySelector('.tabs').style.display = 'none';
     document.querySelector('h2').style.display = 'none';
     document.getElementById('cloudSyncStatus').style.display = 'none';
     document.getElementById('paymentBox').style.display = 'none';
     
-    // पासबुक टैब के अंदर के इनपुट और बटन छुपाना
     let passbookTab = document.getElementById('passbook-tab');
     let children = passbookTab.children;
     for(let i=0; i<children.length; i++) {
@@ -572,18 +611,15 @@
         }
     }
 
-    // रिपोर्ट के अंदर के शेयर वाले बटन छुपाना
     let btnRow = document.getElementById('actionButtonsRow');
     if(btnRow) btnRow.style.display = 'none';
     
-    // एक्शन (डिलीट/एडिट) कॉलम छुपाना
     let noPrintElements = document.querySelectorAll('.no-print');
     noPrintElements.forEach(el => el.style.display = 'none');
 
-    // वापस जाने (Exit) का बटन बनाना
     let backBtn = document.createElement('button');
     backBtn.id = "exitScreenBtn";
-    backBtn.innerText = "🔙 स्क्रीनशॉट ले लिया? वापस जाने के लिए यहाँ दबाएँ";
+    backBtn.innerText = "🔙 वापस जाने के लिए यहाँ दबाएँ";
     backBtn.style.backgroundColor = "#d32f2f";
     backBtn.style.color = "white";
     backBtn.style.padding = "15px";
@@ -592,9 +628,9 @@
     backBtn.style.fontWeight = "bold";
     backBtn.style.marginBottom = "20px";
     backBtn.style.borderRadius = "8px";
+    backBtn.className = "no-print";
     
     backBtn.onclick = function() {
-        // वापस सब कुछ पहले जैसा करना
         document.querySelector('.tabs').style.display = 'flex';
         document.querySelector('h2').style.display = 'block';
         document.getElementById('cloudSyncStatus').style.display = 'block';
@@ -608,6 +644,10 @@
     
     document.body.prepend(backBtn);
     window.scrollTo(0, 0);
+
+    setTimeout(() => {
+        window.print();
+    }, 500);
   }
 
   function addPayment() { 
